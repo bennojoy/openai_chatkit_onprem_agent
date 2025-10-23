@@ -21,8 +21,8 @@ export function Layout({ theme, mode, onStartCall, children }: LayoutProps) {
           : "from-slate-50 via-white to-slate-100 text-slate-900"
       }`}
     >
-      <div className="container mx-auto flex min-h-screen items-center justify-center p-6">
-        <div className="w-full max-w-4xl">
+      <div className="container mx-auto" style={{ height: "100vh" }}>
+        <div className="w-full max-w-4xl" style={{ height: "100%" }}>
           {/* Chat Container */}
           <div
             className={`relative overflow-hidden rounded-3xl shadow-2xl transition-all duration-300 ${
@@ -30,7 +30,7 @@ export function Layout({ theme, mode, onStartCall, children }: LayoutProps) {
                 ? "bg-slate-900/70 ring-1 ring-slate-800/60 backdrop-blur"
                 : "bg-white/80 ring-1 ring-slate-200/60 backdrop-blur"
             }`}
-            style={{ height: "70vh" }}
+            style={{ height: "100%" }}
           >
             {children}
           </div>

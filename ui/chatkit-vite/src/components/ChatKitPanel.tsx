@@ -58,13 +58,28 @@ export function ChatKitPanel({ theme, onStartCall }: ChatKitPanelProps) {
     threadItemActions: {
       feedback: FEATURES.enableFeedback,
     },
+    // Temporarily removed onClientTool to test
+    // onClientTool: async (toolCall) => {
+    //   console.log('Client tool called:', toolCall);
+    //   if (toolCall.name === 'voice-call') {
+    //     console.log('Voice call tool triggered, calling onStartCall');
+    //     // Trigger voice mode
+    //     if (onStartCall) {
+    //       onStartCall();
+    //     } else {
+    //       console.error('onStartCall is not defined');
+    //     }
+    //     return { success: true };
+    //   }
+    //   return {};
+    // },
     header: {
       enabled: true,
       title: {
         text: "Pets Inc Demo",
       },
       rightAction: {
-        icon: "compose",
+        icon: "dots-vertical",
         onClick: () => {
           if (onStartCall) {
             onStartCall();
@@ -84,7 +99,7 @@ export function ChatKitPanel({ theme, onStartCall }: ChatKitPanelProps) {
           <strong>Error:</strong> {error}
         </div>
       )}
-      <div style={{ height: '500px', width: '100%' }}>
+      <div style={{ height: '100vh', width: '100%' }}>
         <ChatKit control={control} style={{ height: '100%', width: '100%' }} />
       </div>
     </div>

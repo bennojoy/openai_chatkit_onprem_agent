@@ -286,7 +286,7 @@ export function VoicePanel({ theme, onEndCall }: VoicePanelProps) {
       <div style={{
         position: 'relative',
         width: '100%',
-        height: '600px',
+        height: '100%',
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
@@ -517,7 +517,7 @@ export function VoicePanel({ theme, onEndCall }: VoicePanelProps) {
     <div style={{
       position: 'relative',
       width: '100%',
-      height: '600px',
+      height: '100%',
       display: 'flex',
       flexDirection: 'column',
       background: isDark 
