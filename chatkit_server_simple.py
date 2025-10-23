@@ -16,9 +16,9 @@ sys.path.append(os.path.dirname(__file__))
 
 # ChatKit imports
 from chatkit.server import ChatKitServer, StreamingResult
-from chatkit.types import ThreadMetadata, UserMessageItem, ThreadStreamEvent, UserMessageContent
-from chatkit.store import Store
-from chatkit.agents import AgentContext, stream_agent_response, simple_to_agent_input
+from chatkit.types import ThreadMetadata, UserMessageItem, ThreadStreamEvent, UserMessageContent, Attachment, AttachmentCreateParams, ImageAttachment, FileAttachment
+from chatkit.store import Store, AttachmentStore
+from chatkit.agents import AgentContext, stream_agent_response, simple_to_agent_input, ThreadItemConverter
 
 # Agents imports
 from agents.agent import Agent
@@ -47,6 +47,7 @@ class PetChatKitServer(ChatKitServer):
     
     def __init__(self, data_store: Store, attachment_store=None):
         super().__init__(data_store, attachment_store)
+        self.converter = PetAssistantThreadItemConverter(data_store)
         logger.info("Pet ChatKit server initialized")
     
     async def respond(
@@ -76,7 +77,7 @@ class PetChatKitServer(ChatKitServer):
             if previous_response_id:
                 # If we have a previous_response_id, only send the current message
                 # The Agent SDK will use previous_response_id to reference the conversation history
-                agent_input = await simple_to_agent_input([input])
+                agent_input = await self.converter.to_agent_input([input])
                 logger.info("Using previous_response_id optimization - sending only current message")
             else:
                 # First message - load all conversation history
@@ -84,7 +85,7 @@ class PetChatKitServer(ChatKitServer):
                     thread.id, None, 100, "asc", context
                 )
                 logger.info(f"First message - loaded {len(thread_items.data)} items from thread {thread.id}")
-                agent_input = await simple_to_agent_input(thread_items.data)
+                agent_input = await self.converter.to_agent_input(thread_items.data)
         else:
             agent_input = []
         
@@ -228,13 +229,79 @@ class SimpleSQLiteStore(Store[Any]):
             return Page(data=items, has_more=False, after=None)
     
     async def save_attachment(self, attachment: Any, context: Any) -> None:
-        pass
+        """Save attachment data to database."""
+        with self._create_connection() as conn:
+            # Extract base64 data from attachment
+            if hasattr(attachment, 'data'):
+                data = attachment.data
+            elif isinstance(attachment, dict) and 'data' in attachment:
+                data = attachment['data']
+            else:
+                # For ImageAttachment/FileAttachment objects, we need to get the actual data
+                # This will be handled by the attachment store
+                data = ""
+            
+            conn.execute(
+                "INSERT OR REPLACE INTO attachments (id, name, mime_type, size, data, created_at) VALUES (?, ?, ?, ?, ?, ?)",
+                (
+                    attachment.id if hasattr(attachment, 'id') else attachment.get('id'),
+                    attachment.name if hasattr(attachment, 'name') else attachment.get('name'),
+                    attachment.mime_type if hasattr(attachment, 'mime_type') else attachment.get('mime_type'),
+                    attachment.size if hasattr(attachment, 'size') else attachment.get('size', 0),
+                    data,
+                    datetime.now().isoformat()
+                )
+            )
+            conn.commit()
     
     async def load_attachment(self, attachment_id: str, context: Any):
-        raise NotImplementedError
+        """Load attachment from database."""
+        logger.info(f"Loading attachment with ID: {attachment_id}")
+        
+        with self._create_connection() as conn:
+            # Debug: Show all attachments in database
+            all_attachments = conn.execute("SELECT id, name FROM attachments").fetchall()
+            logger.info(f"All attachments in database: {all_attachments}")
+            
+            cursor = conn.execute("SELECT * FROM attachments WHERE id = ?", (attachment_id,)).fetchone()
+            if cursor is None:
+                logger.error(f"Attachment {attachment_id} not found in database")
+                raise Exception(f"Attachment {attachment_id} not found")
+            
+            logger.info(f"Found attachment: {cursor[0]} - {cursor[1]}")
+            
+            # Extract data from database
+            id_val = cursor[0]
+            name = cursor[1]
+            mime_type = cursor[2]
+            size = cursor[3]
+            data = cursor[4]
+            created_at = cursor[5]
+            
+            # Return proper ChatKit attachment object with type discriminator
+            from chatkit.types import ImageAttachment, FileAttachment
+            
+            if mime_type and mime_type.startswith("image/"):
+                return ImageAttachment(
+                    id=id_val,
+                    name=name,
+                    mime_type=mime_type,
+                    upload_url=None,
+                    preview_url=f"data:{mime_type};base64,{data}" if data else None
+                )
+            else:
+                return FileAttachment(
+                    id=id_val,
+                    name=name,
+                    mime_type=mime_type,
+                    upload_url=None
+                )
     
     async def delete_attachment(self, attachment_id: str, context: Any) -> None:
-        pass
+        """Delete attachment from database."""
+        with self._create_connection() as conn:
+            conn.execute("DELETE FROM attachments WHERE id = ?", (attachment_id,))
+            conn.commit()
     
     async def load_threads(self, limit: int, after: str | None, order: str, context: Any):
         with self._create_connection() as conn:
@@ -337,6 +404,123 @@ class SimpleSQLiteStore(Store[Any]):
             conn.commit()
 
 # =============================================================================
+# SIMPLE SQLITE ATTACHMENT STORE
+# =============================================================================
+
+class SimpleSQLiteAttachmentStore(AttachmentStore[Any]):
+    """Simple SQLite attachment store for development."""
+    
+    def __init__(self, db_path: str = "pet_chat.db"):
+        self.db_path = db_path
+        self._create_tables()
+    
+    def _create_connection(self):
+        return sqlite3.connect(self.db_path)
+    
+    def _create_tables(self):
+        with self._create_connection() as conn:
+            conn.execute("""
+                CREATE TABLE IF NOT EXISTS attachments (
+                    id TEXT PRIMARY KEY,
+                    name TEXT NOT NULL,
+                    mime_type TEXT NOT NULL,
+                    size INTEGER NOT NULL,
+                    data TEXT NOT NULL,
+                    created_at TEXT NOT NULL
+                )
+            """)
+            conn.commit()
+    
+    def generate_attachment_id(self, mime_type: str, context: Any) -> str:
+        return f"atc_{uuid.uuid4().hex[:8]}"
+    
+    async def create_attachment(self, input: AttachmentCreateParams, context: Any) -> Attachment:
+        """Create attachment metadata and return attachment object."""
+        attachment_id = self.generate_attachment_id(input.mime_type, context)
+        logger.info(f"Creating attachment with ID: {attachment_id}")
+
+        # Create database record
+        with self._create_connection() as conn:
+            conn.execute(
+                "INSERT INTO attachments (id, name, mime_type, size, data, created_at) VALUES (?, ?, ?, ?, ?, ?)",
+                (attachment_id, input.name, input.mime_type, input.size, "", datetime.now().isoformat())
+            )
+            conn.commit()
+            logger.info(f"Stored attachment in database with ID: {attachment_id}")
+        
+        if input.mime_type.startswith("image/"):
+            return ImageAttachment(
+                id=attachment_id,
+                name=input.name,
+                mime_type=input.mime_type,
+                upload_url=None,  # Direct upload
+                preview_url=f"data:{input.mime_type};base64,"
+            )
+        else:
+            return FileAttachment(
+                id=attachment_id,
+                name=input.name,
+                mime_type=input.mime_type,
+                upload_url=None  # Direct upload
+            )
+    
+    async def upload_attachment_data(self, attachment_id: str, data: bytes, context: Any) -> None:
+        """Store the actual attachment data."""
+        import base64
+        base64_data = base64.b64encode(data).decode('utf-8')
+        
+        with self._create_connection() as conn:
+            conn.execute(
+                "UPDATE attachments SET data = ? WHERE id = ?",
+                (base64_data, attachment_id)
+            )
+            conn.commit()
+    
+    async def delete_attachment(self, attachment_id: str, context: Any) -> None:
+        """Delete attachment from database."""
+        with self._create_connection() as conn:
+            conn.execute("DELETE FROM attachments WHERE id = ?", (attachment_id,))
+            conn.commit()
+
+# =============================================================================
+# PET ASSISTANT THREAD ITEM CONVERTER
+# =============================================================================
+
+class PetAssistantThreadItemConverter(ThreadItemConverter):
+    """Custom converter for pet assistant that handles image attachments."""
+    
+    def __init__(self, store: Store):
+        self.store = store
+    
+    async def attachment_to_message_content(self, attachment: Attachment):
+        """Convert attachment to Agent SDK input format using ChatKit's native approach."""
+        # Get the raw attachment data from our store
+        with self.store._create_connection() as conn:
+            cursor = conn.execute("SELECT data FROM attachments WHERE id = ?", (attachment.id,)).fetchone()
+            base64_data = cursor[0] if cursor else ""
+        
+        # Create data URL for the attachment
+        data_url = f"data:{attachment.mime_type};base64,{base64_data}"
+        
+        # Use proper ChatKit/Agent SDK types
+        from openai.types.responses.response_input_image_param import ResponseInputImageParam
+        from openai.types.responses.response_input_file_param import ResponseInputFileParam
+        
+        if isinstance(attachment, ImageAttachment):
+            return ResponseInputImageParam(
+                type="input_image",
+                detail="auto",
+                image_url=data_url,
+            )
+        else:
+            # For non-image files, return as file parameter
+            return ResponseInputFileParam(
+                type="input_file",
+                file_data=data_url,
+                filename=attachment.name or "unknown",
+            )
+
+# =============================================================================
 # FASTAPI APPLICATION
 # =============================================================================
 
@@ -359,8 +543,9 @@ def create_app(data_store: Store) -> FastAPI:
         allow_headers=["*"],
     )
     
-    # Create ChatKit server instance
-    chatkit_server = PetChatKitServer(data_store)
+    # Create attachment store and ChatKit server instance
+    attachment_store = SimpleSQLiteAttachmentStore("pet_chat.db")
+    chatkit_server = PetChatKitServer(data_store, attachment_store)
     
     @app.options("/chatkit")
     async def chatkit_options():
@@ -405,6 +590,114 @@ def create_app(data_store: Store) -> FastAPI:
     async def health_check():
         """Health check endpoint."""
         return {"status": "healthy", "service": "pet-chatkit-server"}
+    
+    @app.post("/chatkit/attachments")
+    async def upload_chatkit_attachment(request: Request):
+        """Handle ChatKit direct attachment uploads."""
+        logger.info("Received ChatKit attachment upload request")
+        
+        # Log all headers for debugging
+        logger.info(f"Request headers: {dict(request.headers)}")
+        
+        # Extract context from headers
+        user_id = request.headers.get("user-id")
+        session_id = request.headers.get("session-id")
+        username = request.headers.get("username", "benno")
+        
+        context = {
+            "user_id": user_id,
+            "session_id": session_id,
+            "username": username,
+        }
+        
+        try:
+            # Check if this is a multipart form upload
+            content_type = request.headers.get("content-type", "")
+            if "multipart/form-data" in content_type:
+                # Handle direct file upload
+                form = await request.form()
+                logger.info(f"Form data keys: {list(form.keys())}")
+                logger.info(f"Form data: {dict(form)}")
+                
+                file = form.get("file")
+                
+                if not file:
+                    raise HTTPException(status_code=400, detail="No file field in form data")
+                
+                # Generate a single attachment ID that we'll use consistently
+                import uuid
+                attachment_id = f"atc_{uuid.uuid4().hex[:8]}"
+                logger.info(f"Generated attachment ID: {attachment_id}")
+                
+                # Read file data
+                file_data = await file.read()
+                
+                # Create attachment metadata
+                from chatkit.types import ImageAttachment, FileAttachment
+                
+                if file.content_type and file.content_type.startswith("image/"):
+                    attachment = ImageAttachment(
+                        id=attachment_id,
+                        name=file.filename or "image",
+                        mime_type=file.content_type,
+                        upload_url=None,
+                        preview_url=f"data:{file.content_type};base64,"
+                    )
+                else:
+                    attachment = FileAttachment(
+                        id=attachment_id,
+                        name=file.filename or "file",
+                        mime_type=file.content_type or "application/octet-stream",
+                        upload_url=None
+                    )
+                
+                # Store attachment metadata and data using the SAME ID
+                from chatkit.types import AttachmentCreateParams
+                create_params = AttachmentCreateParams(
+                    name=attachment.name,
+                    mime_type=attachment.mime_type,
+                    size=len(file_data)
+                )
+                
+                # Override the attachment store's ID generation to use our ID
+                original_generate_id = attachment_store.generate_attachment_id
+                attachment_store.generate_attachment_id = lambda mime_type, context: attachment_id
+                
+                try:
+                    await attachment_store.create_attachment(create_params, context)
+                    await attachment_store.upload_attachment_data(attachment_id, file_data, context)
+                finally:
+                    # Restore original ID generation method
+                    attachment_store.generate_attachment_id = original_generate_id
+                
+                logger.info(f"Successfully uploaded ChatKit attachment {attachment_id}")
+                return attachment.model_dump()
+                
+            else:
+                # Handle legacy header-based approach
+                attachment_id = (
+                    request.headers.get("attachment-id") or
+                    request.headers.get("attachment_id") or
+                    request.headers.get("x-attachment-id") or
+                    request.headers.get("X-Attachment-ID")
+                )
+                
+                if not attachment_id:
+                    import uuid
+                    attachment_id = f"atc_{uuid.uuid4().hex[:8]}"
+                    logger.info(f"Generated attachment ID: {attachment_id}")
+                
+                file_data = await request.body()
+                logger.info(f"Received {len(file_data)} bytes of attachment data")
+                
+                await attachment_store.upload_attachment_data(attachment_id, file_data, context)
+                
+                logger.info(f"Successfully uploaded ChatKit attachment {attachment_id}")
+                return {"status": "success", "attachment_id": attachment_id}
+            
+        except Exception as e:
+            logger.error(f"Error uploading ChatKit attachment: {str(e)}")
+            raise HTTPException(status_code=500, detail=str(e))
     
     logger.info("FastAPI application created successfully")
     return app
