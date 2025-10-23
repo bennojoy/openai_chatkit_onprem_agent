@@ -1,0 +1,43 @@
+# Ignore everything by default
+*
+
+# But include these specific files and folders
+!chatkit_server_simple.py
+!mcp_server.py
+!pet_agent.py
+!.gitignore
+!README.md
+
+# Include UI source files
+!ui/chatkit-vite/src/
+!ui/chatkit-vite/package.json
+!ui/chatkit-vite/tsconfig.json
+!ui/chatkit-vite/tsconfig.app.json
+!ui/chatkit-vite/tsconfig.node.json
+!ui/chatkit-vite/vite.config.ts
+!ui/chatkit-vite/tailwind.config.js
+!ui/chatkit-vite/postcss.config.js
+!ui/chatkit-vite/eslint.config.js
+!ui/chatkit-vite/index.html
+!ui/chatkit-vite/README.md
+!ui/chatkit-vite/ARCHITECTURE.md
+!ui/chatkit-vite/REFACTORING.md
+!ui/session_server.py
+!ui/README.md
+
+# Ignore common build artifacts and dependencies
+**/node_modules/
+**/dist/
+**/build/
+**/.next/
+**/coverage/
+**/.nyc_output/
+**/package-lock.json
+**/yarn.lock
+**/pnpm-lock.yaml
+**/.DS_Store
+**/Thumbs.db
+**/.venv/
+**/venv/
+**/env/
+**/.env/

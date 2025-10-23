@@ -1,0 +1,4 @@
+npm create vite@latest chatkit-vite -- --template react-ts
+cd chatkit-vite
+npm install
+npm install @openai/chatkit-react
