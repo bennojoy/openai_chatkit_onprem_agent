@@ -1,6 +1,35 @@
 # OpenAI ChatKit Demo: Pet Food Assistant
 
-    A complete demonstration of OpenAI ChatKit featuring both **text chat** and **voice assistant** capabilities, with a self-hosted ChatKit server and optional MCP server integration.
+    A complete demonstration of OpenAI ChatKit featuring **text chat**, **voice assistant**, and **vision capabilities** for image analysis. This demo creates a comprehensive AI agent that can communicate through multiple modalities with a self-hosted ChatKit server and optional MCP server integration.
+
+## 🌟 **Multi-Modal AI Agent Capabilities**
+
+This demo showcases a **complete AI agent** with three powerful capabilities:
+
+### 🎤 **Voice Assistant**
+- **Real-time voice conversations** using OpenAI Realtime API
+- **Natural speech recognition** and response generation
+- **Microphone selection** and audio device management
+- **Live transcript** display during conversations
+
+### 💬 **Text Chat Interface**
+- **Traditional chat interface** with modern UI
+- **Rich text conversations** with the pet food assistant
+- **File and image upload** support
+- **Persistent conversation history**
+
+### 👁️ **Vision & Image Analysis**
+- **Pet photo analysis** using GPT-5 with vision
+- **Automatic species detection** (Dog/Cat identification)
+- **Breed recognition** and age estimation
+- **Smart food recommendations** based on visual analysis
+- **Image confirmation workflow** for accurate recommendations
+
+### 🔄 **Seamless Integration**
+- **Unified agent experience** across all modalities
+- **Consistent personality** and knowledge base
+- **Cross-modal context** understanding
+- **Progressive enhancement** from text → voice → vision
 
 ## 🏗️ Architecture
 
@@ -12,18 +41,29 @@
 │                 │    │                  │    │                │
 │ • Text Chat     │◄──►│ • SQLite Store   │◄──►│ • OpenSearch   │
 │ • Voice Panel   │    │ • Pet Agent      │    │ • Product DB   │
-│ • React + Vite  │    │ • FastAPI        │    │ • Tools        │
+│ • Image Upload  │    │ • Vision Analysis│    │ • Tools        │
+│ • React + Vite  │    │ • FastAPI        │    │                │
 └─────────────────┘    └──────────────────┘    └─────────────────┘
 ```
 
 ## 🎯 What This Project Actually Does
 
-This project demonstrates how to build an intelligent pet food store assistant that can help customers find the perfect food for their dogs and cats. The assistant works in two modes:
+This project demonstrates how to build an **intelligent multi-modal pet food store assistant** that can help customers find the perfect food for their dogs and cats through three different interaction methods:
 
-1. **Text Chat**: Traditional chat interface where customers type their questions
-2. **Voice Chat**: Real-time voice conversation where customers can speak naturally and get instant responses
+### 📱 **Text Chat Experience**
+Customers can type their questions like "What's the best food for a senior cat with kidney issues?" and get detailed, personalized recommendations with product comparisons and nutritional information.
 
-The magic happens when a customer says something like "I need food for my adult dog with a sensitive stomach" - the assistant understands the context, searches through thousands of products, and recommends the best options with detailed explanations.
+### 🎙️ **Voice Assistant Experience** 
+Customers can have natural voice conversations, saying things like "I need food for my adult dog with a sensitive stomach" and receive instant, spoken responses with product recommendations and explanations.
+
+### 📸 **Vision & Image Analysis Experience**
+Customers can upload photos of their pets, and the assistant will:
+- **Automatically identify** the species (Dog/Cat)
+- **Recognize the breed** and estimate age
+- **Confirm details** with the customer
+- **Recommend appropriate food** based on visual analysis
+
+The magic happens when these capabilities work together - a customer can start with text, switch to voice for a more natural conversation, and then upload a photo for precise visual analysis, all with the same intelligent assistant maintaining context across all interactions.
 
 ![ChatKit UI Screenshot](assets/chatkit_ui_screenshot.png)
 

@@ -23,39 +23,6 @@ export function Layout({ theme, mode, onStartCall, children }: LayoutProps) {
     >
       <div className="container mx-auto flex min-h-screen items-center justify-center p-6">
         <div className="w-full max-w-4xl">
-          {/* Header */}
-          <header className="mb-8 text-center relative">
-            <h1
-              className={`text-4xl font-bold mb-3 ${
-                isDark ? "text-slate-100" : "text-slate-900"
-              }`}
-            >
-              {APP_UI_CONFIG.title}
-            </h1>
-            <p
-              className={`text-sm ${
-                isDark ? "text-slate-400" : "text-slate-600"
-              }`}
-            >
-              {APP_UI_CONFIG.subtitle}
-            </p>
-            
-            {/* Call Button */}
-            {!isInCall && (
-              <button
-                className={`absolute top-0 right-0 flex items-center gap-2 px-4 py-2 rounded-full transition-all duration-200 ${
-                  isDark
-                    ? "bg-slate-800 hover:bg-slate-700 text-slate-100 ring-1 ring-slate-700"
-                    : "bg-white hover:bg-slate-50 text-slate-900 ring-1 ring-slate-200 shadow-sm"
-                }`}
-                onClick={onStartCall}
-              >
-                <span className="text-xl">📞</span>
-                <span className="text-sm font-medium">Call</span>
-              </button>
-            )}
-          </header>
-
           {/* Chat Container */}
           <div
             className={`relative overflow-hidden rounded-3xl shadow-2xl transition-all duration-300 ${
@@ -67,15 +34,6 @@ export function Layout({ theme, mode, onStartCall, children }: LayoutProps) {
           >
             {children}
           </div>
-
-          {/* Footer */}
-          <footer
-            className={`mt-6 text-center text-xs ${
-              isDark ? "text-slate-500" : "text-slate-500"
-            }`}
-          >
-            {APP_UI_CONFIG.footer}
-          </footer>
         </div>
       </div>
     </div>

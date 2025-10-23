@@ -283,29 +283,71 @@ export function VoicePanel({ theme, onEndCall }: VoicePanelProps) {
   // Show device selector before connecting
   if (showDeviceSelector) {
     return (
-      <div className="relative h-full w-full flex flex-col items-center justify-center p-6">
-        <div className={`w-full max-w-md space-y-6 p-8 rounded-3xl shadow-xl ${
-          isDark ? "bg-slate-800/90 ring-1 ring-slate-700/60" : "bg-white/90 ring-1 ring-slate-200/60"
-        }`}>
-          <div className="text-center">
-            <p className="text-2xl mb-2">🎙️</p>
-            <h3 className={`text-lg font-semibold mb-2 ${isDark ? "text-slate-100" : "text-slate-900"}`}>
+      <div style={{
+        position: 'relative',
+        width: '100%',
+        height: '600px',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: '24px',
+        background: isDark 
+          ? 'linear-gradient(135deg, #1e293b 0%, #0f172a 50%, #1e293b 100%)'
+          : 'linear-gradient(135deg, #f8fafc 0%, #ffffff 50%, #f1f5f9 100%)'
+      }}>
+        <div style={{
+          width: '100%',
+          maxWidth: '480px',
+          padding: '32px',
+          borderRadius: '24px',
+          boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+          background: isDark ? 'rgba(30, 41, 59, 0.95)' : 'rgba(255, 255, 255, 0.95)',
+          border: isDark ? '1px solid rgba(71, 85, 105, 0.3)' : '1px solid rgba(226, 232, 240, 0.3)',
+          backdropFilter: 'blur(10px)'
+        }}>
+          <div style={{ textAlign: 'center', marginBottom: '32px' }}>
+            <div style={{ fontSize: '48px', marginBottom: '16px' }}>🎙️</div>
+            <h3 style={{
+              fontSize: '24px',
+              fontWeight: '600',
+              marginBottom: '8px',
+              color: isDark ? '#f1f5f9' : '#0f172a'
+            }}>
               Select Microphone
             </h3>
-            <p className={`text-sm ${isDark ? "text-slate-400" : "text-slate-600"}`}>
+            <p style={{
+              fontSize: '16px',
+              color: isDark ? '#94a3b8' : '#64748b',
+              margin: 0
+            }}>
               Choose which microphone to use for the call
             </p>
           </div>
 
           {error && (
-            <div className="p-3 bg-red-50 border border-red-300 rounded-lg text-red-800 text-sm">
+            <div style={{
+              padding: '16px',
+              backgroundColor: '#fef2f2',
+              border: '1px solid #fecaca',
+              borderRadius: '12px',
+              color: '#991b1b',
+              fontSize: '14px',
+              marginBottom: '24px'
+            }}>
               <strong>Error:</strong> {error}
             </div>
           )}
 
-          <div className="space-y-3">
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
             <div>
-              <label className={`block text-sm font-medium mb-2 ${isDark ? "text-slate-300" : "text-slate-700"}`}>
+              <label style={{
+                display: 'block',
+                fontSize: '16px',
+                fontWeight: '500',
+                marginBottom: '12px',
+                color: isDark ? '#cbd5e1' : '#374151'
+              }}>
                 Your Name
               </label>
               <input
@@ -313,64 +355,158 @@ export function VoicePanel({ theme, onEndCall }: VoicePanelProps) {
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 placeholder="Enter your name"
-                className={`w-full p-3 rounded-xl border transition-colors ${
-                  isDark
-                    ? "bg-slate-700/50 border-slate-600 text-slate-100 focus:border-slate-500"
-                    : "bg-white border-slate-300 text-slate-900 focus:border-slate-400"
-                }`}
+                style={{
+                  width: '100%',
+                  padding: '16px',
+                  borderRadius: '12px',
+                  border: `2px solid ${isDark ? '#475569' : '#d1d5db'}`,
+                  backgroundColor: isDark ? '#374151' : '#ffffff',
+                  color: isDark ? '#f1f5f9' : '#111827',
+                  fontSize: '16px',
+                  outline: 'none',
+                  transition: 'all 0.2s ease',
+                  boxSizing: 'border-box'
+                }}
+                onFocus={(e) => {
+                  const target = e.target as HTMLInputElement;
+                  target.style.borderColor = isDark ? '#64748b' : '#94a3b8';
+                  target.style.backgroundColor = isDark ? '#4b5563' : '#f9fafb';
+                }}
+                onBlur={(e) => {
+                  const target = e.target as HTMLInputElement;
+                  target.style.borderColor = isDark ? '#475569' : '#d1d5db';
+                  target.style.backgroundColor = isDark ? '#374151' : '#ffffff';
+                }}
               />
             </div>
             
             <div>
-              <label className={`block text-sm font-medium ${isDark ? "text-slate-300" : "text-slate-700"}`}>
+              <label style={{
+                display: 'block',
+                fontSize: '16px',
+                fontWeight: '500',
+                marginBottom: '12px',
+                color: isDark ? '#cbd5e1' : '#374151'
+              }}>
                 Available Microphones
               </label>
-            {devices.length === 0 ? (
-              <p className={`text-sm ${isDark ? "text-slate-400" : "text-slate-600"}`}>
-                Loading microphones...
-              </p>
-            ) : (
-              <select
-                value={selectedDeviceId}
-                onChange={(e) => setSelectedDeviceId(e.target.value)}
-                className={`w-full p-3 rounded-xl border transition-colors ${
-                  isDark
-                    ? "bg-slate-700/50 border-slate-600 text-slate-100 focus:border-slate-500"
-                    : "bg-white border-slate-300 text-slate-900 focus:border-slate-400"
-                }`}
-              >
-                {devices.map((device) => (
-                  <option key={device.deviceId} value={device.deviceId}>
-                    {device.label}
-                  </option>
-                ))}
-              </select>
-            )}
+              {devices.length === 0 ? (
+                <p style={{
+                  fontSize: '16px',
+                  color: isDark ? '#94a3b8' : '#64748b',
+                  margin: 0,
+                  padding: '16px',
+                  backgroundColor: isDark ? '#374151' : '#f9fafb',
+                  borderRadius: '12px',
+                  border: `2px solid ${isDark ? '#475569' : '#d1d5db'}`
+                }}>
+                  Loading microphones...
+                </p>
+              ) : (
+                <select
+                  value={selectedDeviceId}
+                  onChange={(e) => setSelectedDeviceId(e.target.value)}
+                  style={{
+                    width: '100%',
+                    padding: '16px',
+                    borderRadius: '12px',
+                    border: `2px solid ${isDark ? '#475569' : '#d1d5db'}`,
+                    backgroundColor: isDark ? '#374151' : '#ffffff',
+                    color: isDark ? '#f1f5f9' : '#111827',
+                    fontSize: '16px',
+                    outline: 'none',
+                    transition: 'all 0.2s ease',
+                    boxSizing: 'border-box',
+                    cursor: 'pointer'
+                  }}
+                  onFocus={(e) => {
+                    const target = e.target as HTMLSelectElement;
+                    target.style.borderColor = isDark ? '#64748b' : '#94a3b8';
+                    target.style.backgroundColor = isDark ? '#4b5563' : '#f9fafb';
+                  }}
+                  onBlur={(e) => {
+                    const target = e.target as HTMLSelectElement;
+                    target.style.borderColor = isDark ? '#475569' : '#d1d5db';
+                    target.style.backgroundColor = isDark ? '#374151' : '#ffffff';
+                  }}
+                >
+                  {devices.map((device) => (
+                    <option key={device.deviceId} value={device.deviceId}>
+                      {device.label}
+                    </option>
+                  ))}
+                </select>
+              )}
             </div>
           </div>
 
-          <button
-            onClick={handleStartCall}
-            disabled={!selectedDeviceId}
-            className={`w-full py-3 px-4 rounded-xl font-medium transition-all shadow-sm ${
-              selectedDeviceId
-                ? "bg-green-500 hover:bg-green-600 text-white hover:shadow-md"
-                : "bg-slate-300 text-slate-500 cursor-not-allowed"
-            }`}
-          >
-            Start Call as {username || "Guest"}
-          </button>
+          <div style={{ marginTop: '32px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            <button
+              onClick={handleStartCall}
+              disabled={!selectedDeviceId}
+              style={{
+                width: '100%',
+                padding: '16px 24px',
+                borderRadius: '12px',
+                border: 'none',
+                fontSize: '18px',
+                fontWeight: '600',
+                cursor: selectedDeviceId ? 'pointer' : 'not-allowed',
+                transition: 'all 0.2s ease',
+                backgroundColor: selectedDeviceId ? '#10b981' : '#cbd5e1',
+                color: selectedDeviceId ? '#ffffff' : '#6b7280',
+                boxShadow: selectedDeviceId ? '0 4px 14px 0 rgba(16, 185, 129, 0.3)' : 'none'
+              }}
+              onMouseEnter={(e) => {
+                if (selectedDeviceId) {
+                  const target = e.target as HTMLButtonElement;
+                  target.style.backgroundColor = '#059669';
+                  target.style.transform = 'translateY(-2px)';
+                  target.style.boxShadow = '0 8px 25px 0 rgba(16, 185, 129, 0.4)';
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (selectedDeviceId) {
+                  const target = e.target as HTMLButtonElement;
+                  target.style.backgroundColor = '#10b981';
+                  target.style.transform = 'translateY(0)';
+                  target.style.boxShadow = '0 4px 14px 0 rgba(16, 185, 129, 0.3)';
+                }
+              }}
+            >
+              Start Call as {username || "Guest"}
+            </button>
 
-          <button
-            onClick={() => { disconnect(); onEndCall(); }}
-            className={`w-full py-2 px-4 rounded-xl text-sm transition-colors ${
-              isDark
-                ? "text-slate-400 hover:text-slate-200 hover:bg-slate-700/50"
-                : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
-            }`}
-          >
-            Cancel
-          </button>
+            <button
+              onClick={() => { disconnect(); onEndCall(); }}
+              style={{
+                width: '100%',
+                padding: '12px 24px',
+                borderRadius: '12px',
+                border: `2px solid ${isDark ? '#475569' : '#d1d5db'}`,
+                backgroundColor: 'transparent',
+                color: isDark ? '#94a3b8' : '#6b7280',
+                fontSize: '16px',
+                fontWeight: '500',
+                cursor: 'pointer',
+                transition: 'all 0.2s ease'
+              }}
+              onMouseEnter={(e) => {
+                const target = e.target as HTMLButtonElement;
+                target.style.backgroundColor = isDark ? '#374151' : '#f9fafb';
+                target.style.color = isDark ? '#cbd5e1' : '#374151';
+                target.style.borderColor = isDark ? '#64748b' : '#94a3b8';
+              }}
+              onMouseLeave={(e) => {
+                const target = e.target as HTMLButtonElement;
+                target.style.backgroundColor = 'transparent';
+                target.style.color = isDark ? '#94a3b8' : '#6b7280';
+                target.style.borderColor = isDark ? '#475569' : '#d1d5db';
+              }}
+            >
+              Cancel
+            </button>
+          </div>
         </div>
       </div>
     );
@@ -378,38 +514,60 @@ export function VoicePanel({ theme, onEndCall }: VoicePanelProps) {
 
   // Call is active - show call interface
   return (
-    <div className="relative h-full w-full flex flex-col">
+    <div style={{
+      position: 'relative',
+      width: '100%',
+      height: '600px',
+      display: 'flex',
+      flexDirection: 'column',
+      background: isDark 
+        ? 'linear-gradient(135deg, #1e293b 0%, #0f172a 50%, #1e293b 100%)'
+        : 'linear-gradient(135deg, #f8fafc 0%, #ffffff 50%, #f1f5f9 100%)'
+    }}>
       {/* Header */}
-      <div
-        className={`flex items-center justify-between p-4 border-b backdrop-blur-sm ${
-          isDark ? "border-slate-700/50 bg-slate-800/30" : "border-slate-200/50 bg-slate-50/30"
-        }`}
-      >
-        <div className="flex items-center gap-3">
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        padding: '16px 24px',
+        borderBottom: isDark ? '1px solid rgba(71, 85, 105, 0.3)' : '1px solid rgba(226, 232, 240, 0.3)',
+        background: isDark ? 'rgba(30, 41, 59, 0.3)' : 'rgba(248, 250, 252, 0.3)',
+        backdropFilter: 'blur(10px)'
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '24px' }}>
           {/* Status */}
-          <div className="flex items-center gap-2">
-            <div
-              className={`w-3 h-3 rounded-full ${
-                status === "connected"
-                  ? "bg-green-500 animate-pulse"
-                  : status === "connecting"
-                  ? "bg-yellow-500 animate-pulse"
-                  : status === "error"
-                  ? "bg-red-500"
-                  : "bg-gray-500"
-              }`}
-            />
-            <span className={`text-sm font-medium ${isDark ? "text-slate-200" : "text-slate-700"}`}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <div style={{
+              width: '12px',
+              height: '12px',
+              borderRadius: '50%',
+              backgroundColor: status === "connected" ? '#10b981' : 
+                               status === "connecting" ? '#f59e0b' : 
+                               status === "error" ? '#ef4444' : '#6b7280',
+              animation: (status === "connected" || status === "connecting") ? 'pulse 2s infinite' : 'none'
+            }} />
+            <span style={{
+              fontSize: '14px',
+              fontWeight: '500',
+              color: isDark ? '#e2e8f0' : '#374151'
+            }}>
               {status.charAt(0).toUpperCase() + status.slice(1)}
             </span>
           </div>
 
           {/* Microphone indicator */}
-          <div className="flex items-center gap-2">
-            <span className="text-lg">🎙️</span>
-            <span className={`text-sm ${isDark ? "text-slate-400" : "text-slate-600"}`}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span style={{ fontSize: '18px' }}>🎙️</span>
+            <span style={{
+              fontSize: '14px',
+              color: isDark ? '#94a3b8' : '#64748b'
+            }}>
               {isListening ? (
-                <span className="font-semibold text-red-500 animate-pulse">Speaking...</span>
+                <span style={{
+                  fontWeight: '600',
+                  color: '#ef4444',
+                  animation: 'pulse 1s infinite'
+                }}>Speaking...</span>
               ) : (
                 <span>Ready</span>
               )}
@@ -420,58 +578,114 @@ export function VoicePanel({ theme, onEndCall }: VoicePanelProps) {
         {/* End Call */}
         <button
           onClick={() => { disconnect(); onEndCall(); }}
-          className="flex items-center gap-2 px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-full transition-all shadow-sm hover:shadow-md"
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            padding: '8px 16px',
+            backgroundColor: '#ef4444',
+            color: '#ffffff',
+            border: 'none',
+            borderRadius: '24px',
+            fontSize: '14px',
+            fontWeight: '500',
+            cursor: 'pointer',
+            transition: 'all 0.2s ease',
+            boxShadow: '0 2px 8px rgba(239, 68, 68, 0.3)'
+          }}
+          onMouseEnter={(e) => {
+            const target = e.target as HTMLButtonElement;
+            target.style.backgroundColor = '#dc2626';
+            target.style.transform = 'translateY(-1px)';
+            target.style.boxShadow = '0 4px 12px rgba(239, 68, 68, 0.4)';
+          }}
+          onMouseLeave={(e) => {
+            const target = e.target as HTMLButtonElement;
+            target.style.backgroundColor = '#ef4444';
+            target.style.transform = 'translateY(0)';
+            target.style.boxShadow = '0 2px 8px rgba(239, 68, 68, 0.3)';
+          }}
         >
-          <span className="text-lg">📞</span>
-          <span className="text-sm font-medium">End Call</span>
+          <span style={{ fontSize: '18px' }}>📞</span>
+          <span>End Call</span>
         </button>
       </div>
 
       {/* Error */}
       {error && (
-        <div className={`mx-4 mt-4 p-3 rounded-xl text-sm ${
-          isDark 
-            ? "bg-red-900/20 border border-red-800/50 text-red-300"
-            : "bg-red-50 border border-red-300 text-red-800"
-        }`}>
+        <div style={{
+          margin: '16px 24px',
+          padding: '16px',
+          borderRadius: '12px',
+          backgroundColor: isDark ? 'rgba(127, 29, 29, 0.2)' : '#fef2f2',
+          border: isDark ? '1px solid rgba(185, 28, 28, 0.3)' : '1px solid #fecaca',
+          color: isDark ? '#fca5a5' : '#991b1b',
+          fontSize: '14px'
+        }}>
           <strong>Error:</strong> {error}
         </div>
       )}
 
       {/* Transcript */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+      <div style={{
+        flex: 1,
+        overflowY: 'auto',
+        padding: '24px',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '16px'
+      }}>
         {transcript.length === 0 ? (
-          <div className={`text-center py-8 ${isDark ? "text-slate-400" : "text-slate-600"}`}>
-            <p className="text-2xl mb-3">🎙️</p>
-            <p className="text-lg font-medium mb-2">Voice Call Active</p>
-            <p className="text-sm mb-4">Start speaking to talk with our pet food assistant</p>
-            <p className={`text-xs ${isDark ? "text-slate-500" : "text-slate-500"}`}>
+          <div style={{
+            textAlign: 'center',
+            padding: '64px 0',
+            color: isDark ? '#94a3b8' : '#64748b'
+          }}>
+            <div style={{ fontSize: '48px', marginBottom: '24px' }}>🎙️</div>
+            <div style={{ fontSize: '20px', fontWeight: '500', marginBottom: '8px', color: isDark ? '#e2e8f0' : '#374151' }}>
+              Voice Call Active
+            </div>
+            <div style={{ fontSize: '16px', marginBottom: '16px' }}>
+              Start speaking to talk with our pet food assistant
+            </div>
+            <div style={{ fontSize: '14px', color: isDark ? '#64748b' : '#9ca3af' }}>
               Using: {devices.find(d => d.deviceId === selectedDeviceId)?.label || "Default"}
-            </p>
+            </div>
           </div>
         ) : (
           transcript.map((item) => (
             <div
               key={item.id}
-              className={`flex ${item.role === "user" ? "justify-end" : "justify-start"}`}
+              style={{
+                display: 'flex',
+                justifyContent: item.role === "user" ? "flex-end" : "flex-start"
+              }}
             >
-              <div
-                className={`max-w-[80%] rounded-2xl px-4 py-3 shadow-sm ${
-                  isDark
-                    ? "bg-slate-700/80 text-slate-100 ring-1 ring-slate-600/50"
-                    : "bg-slate-100 text-slate-900 ring-1 ring-slate-200"
-                }`}
-              >
-                <p className="text-sm leading-relaxed">{item.text}</p>
-                <span
-                  className={`text-xs mt-1.5 block ${
-                    item.role === "user"
-                      ? "opacity-70"
-                      : isDark
-                      ? "text-slate-400"
-                      : "text-slate-600"
-                  }`}
-                >
+              <div style={{
+                maxWidth: '80%',
+                borderRadius: '16px',
+                padding: '16px 20px',
+                boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
+                background: isDark 
+                  ? 'rgba(51, 65, 85, 0.8)' 
+                  : 'rgba(241, 245, 249, 0.8)',
+                color: isDark ? '#f1f5f9' : '#111827',
+                border: isDark ? '1px solid rgba(71, 85, 105, 0.3)' : '1px solid rgba(226, 232, 240, 0.3)',
+                backdropFilter: 'blur(10px)'
+              }}>
+                <p style={{
+                  fontSize: '16px',
+                  lineHeight: '1.5',
+                  margin: 0,
+                  marginBottom: '8px'
+                }}>{item.text}</p>
+                <span style={{
+                  fontSize: '12px',
+                  color: item.role === "user" 
+                    ? 'rgba(255, 255, 255, 0.7)' 
+                    : isDark ? '#94a3b8' : '#64748b',
+                  display: 'block'
+                }}>
                   {item.timestamp.toLocaleTimeString()}
                 </span>
               </div>
@@ -481,12 +695,18 @@ export function VoicePanel({ theme, onEndCall }: VoicePanelProps) {
       </div>
 
       {/* Footer */}
-      <div
-        className={`p-4 border-t backdrop-blur-sm ${
-          isDark ? "border-slate-700/50 bg-slate-800/30" : "border-slate-200/50 bg-slate-50/30"
-        }`}
-      >
-        <p className={`text-xs text-center ${isDark ? "text-slate-400" : "text-slate-500"}`}>
+      <div style={{
+        padding: '16px 24px',
+        borderTop: isDark ? '1px solid rgba(71, 85, 105, 0.3)' : '1px solid rgba(226, 232, 240, 0.3)',
+        background: isDark ? 'rgba(30, 41, 59, 0.3)' : 'rgba(248, 250, 252, 0.3)',
+        backdropFilter: 'blur(10px)'
+      }}>
+        <p style={{
+          fontSize: '12px',
+          textAlign: 'center',
+          margin: 0,
+          color: isDark ? '#94a3b8' : '#64748b'
+        }}>
           🎙️ Voice powered by OpenAI Realtime API • Connected as {username}
         </p>
       </div>

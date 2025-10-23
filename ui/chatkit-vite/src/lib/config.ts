@@ -87,7 +87,7 @@ export const THEME_CONFIG = {
 // =============================================================================
 
 export const FEATURES = {
-  enableAttachments: false,
+  enableAttachments: true,
   enableFeedback: false,
   showDebugLogs: true,
 } as const;

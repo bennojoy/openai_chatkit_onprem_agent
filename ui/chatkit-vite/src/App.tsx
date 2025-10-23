@@ -21,7 +21,7 @@ export default function App() {
   return (
     <Layout theme={scheme} mode={mode} onStartCall={handleStartCall}>
       {mode === "text" ? (
-        <ChatKitPanel theme={scheme} />
+        <ChatKitPanel theme={scheme} onStartCall={handleStartCall} />
       ) : (
         <VoicePanel theme={scheme} onEndCall={handleEndCall} />
       )}

@@ -5,6 +5,7 @@ import type { ColorScheme } from "../hooks/useColorScheme";
 
 type ChatKitPanelProps = {
   theme: ColorScheme;
+  onStartCall?: () => void;
 };
 
 function getOrCreateDeviceId(): string {
@@ -16,13 +17,17 @@ function getOrCreateDeviceId(): string {
   return id;
 }
 
-export function ChatKitPanel({ theme }: ChatKitPanelProps) {
+export function ChatKitPanel({ theme, onStartCall }: ChatKitPanelProps) {
   const [error, setError] = useState<string | null>(null);
 
   const { control } = useChatKit({
     api: {
       url: API_CONFIG.chatkitServerUrl,
       domainKey: "pet-food-assistant", // Required for CustomApiConfig
+      uploadStrategy: {
+        type: "direct",
+        uploadUrl: `${API_CONFIG.chatkitServerUrl}/attachments`,
+      },
       fetch: (url, options) => {
         if (FEATURES.showDebugLogs) {
           console.log("[ChatKit] Custom fetch called:", url, options?.method);
@@ -53,6 +58,20 @@ export function ChatKitPanel({ theme }: ChatKitPanelProps) {
     threadItemActions: {
       feedback: FEATURES.enableFeedback,
     },
+    header: {
+      enabled: true,
+      title: {
+        text: "Pets Inc Demo",
+      },
+      rightAction: {
+        icon: "compose",
+        onClick: () => {
+          if (onStartCall) {
+            onStartCall();
+          }
+        },
+      },
+    },
     onError: ({ error }: { error: unknown }) => {
       console.error("[ChatKit] error:", error);
     },
@@ -65,7 +84,9 @@ export function ChatKitPanel({ theme }: ChatKitPanelProps) {
           <strong>Error:</strong> {error}
         </div>
       )}
-      <ChatKit control={control} className="h-full w-full" />
+      <div style={{ height: '500px', width: '100%' }}>
+        <ChatKit control={control} style={{ height: '100%', width: '100%' }} />
+      </div>
     </div>
   );
 }
