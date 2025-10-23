@@ -1,6 +1,6 @@
 # OpenAI ChatKit Demo: Pet Food Assistant
 
-A complete demonstration of OpenAI ChatKit featuring both **text chat** and **voice assistant** capabilities, with a self-hosted ChatKit server and optional MCP server integration.
+    A complete demonstration of OpenAI ChatKit featuring both **text chat** and **voice assistant** capabilities, with a self-hosted ChatKit server and optional MCP server integration.
 
 ## 🏗️ Architecture
 
@@ -24,6 +24,10 @@ This project demonstrates how to build an intelligent pet food store assistant t
 2. **Voice Chat**: Real-time voice conversation where customers can speak naturally and get instant responses
 
 The magic happens when a customer says something like "I need food for my adult dog with a sensitive stomach" - the assistant understands the context, searches through thousands of products, and recommends the best options with detailed explanations.
+
+![ChatKit UI Screenshot](assets/chatkit_ui_screenshot.png)
+
+*The PETS INC Demo interface showing the modern chat UI with voice capabilities*
 
 ## 🚀 The Journey: How This Was Built
 
