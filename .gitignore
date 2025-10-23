@@ -25,6 +25,9 @@
 !ui/session_server.py
 !ui/README.md
 
+# Include assets directory
+!assets/
+
 # Ignore common build artifacts and dependencies
 **/node_modules/
 **/dist/
